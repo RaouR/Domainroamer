@@ -23,13 +23,14 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
-// User storage table for Replit Auth
+// User storage table for manual auth
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  username: varchar("username").unique().notNull(),
   email: varchar("email").unique(),
+  password: varchar("password").notNull(),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
-  profileImageUrl: varchar("profile_image_url"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -65,9 +66,12 @@ export const insertUserSchema = createInsertSchema(users).omit({
   updatedAt: true,
 });
 
-export const upsertUserSchema = insertUserSchema.extend({
-  id: z.string(),
+export const loginSchema = z.object({
+  username: z.string().min(1, "Username is required"),
+  password: z.string().min(1, "Password is required"),
 });
+
+export const registerSchema = insertUserSchema.omit({ id: true });
 
 export const insertDomainSchema = createInsertSchema(domains).omit({
   id: true,
@@ -83,7 +87,8 @@ export const insertRegistrarPriceSchema = createInsertSchema(registrarPrices).om
 
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
-export type UpsertUser = z.infer<typeof upsertUserSchema>;
+export type LoginData = z.infer<typeof loginSchema>;
+export type RegisterData = z.infer<typeof registerSchema>;
 export type User = typeof users.$inferSelect;
 export type InsertDomain = z.infer<typeof insertDomainSchema>;
 export type Domain = typeof domains.$inferSelect;

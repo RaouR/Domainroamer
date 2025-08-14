@@ -11,22 +11,9 @@ import SavingsSummary from "@/components/savings-summary";
 
 export default function Dashboard() {
   const { toast } = useToast();
-  const { isAuthenticated, isLoading, user } = useAuth();
+  const { user, isLoading, logoutMutation } = useAuth();
 
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      toast({
-        title: "Unauthorized",
-        description: "You are logged out. Logging in again...",
-        variant: "destructive",
-      });
-      setTimeout(() => {
-        window.location.href = "/api/login";
-      }, 500);
-      return;
-    }
-  }, [isAuthenticated, isLoading, toast]);
+  // Since this page is protected by ProtectedRoute, we don't need manual auth checking
 
   if (isLoading) {
     return (

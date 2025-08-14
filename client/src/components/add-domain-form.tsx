@@ -100,18 +100,12 @@ export default function AddDomainForm() {
               onChange={(e) => setFormData({ ...formData, domainName: e.target.value })}
               required
             />
-            <Select onValueChange={(value) => setFormData({ ...formData, tld: value })}>
-              <SelectTrigger>
-                <SelectValue placeholder="TLD" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value=".com">.com</SelectItem>
-                <SelectItem value=".io">.io</SelectItem>
-                <SelectItem value=".dev">.dev</SelectItem>
-                <SelectItem value=".org">.org</SelectItem>
-                <SelectItem value=".net">.net</SelectItem>
-              </SelectContent>
-            </Select>
+            <Input
+              placeholder="TLD (e.g. .com, .co, .site)"
+              value={formData.tld}
+              onChange={(e) => setFormData({ ...formData, tld: e.target.value })}
+              required
+            />
           </div>
           
           <Select onValueChange={(value) => setFormData({ ...formData, registrar: value })}>

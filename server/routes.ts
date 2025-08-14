@@ -1,33 +1,21 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupAuth, isAuthenticated } from "./auth";
 import { insertDomainSchema, insertRegistrarPriceSchema } from "@shared/schema";
 import { z } from "zod";
 import multer from "multer";
 
 const upload = multer({ dest: 'uploads/' });
 
-export async function registerRoutes(app: Express): Promise<Server> {
+export function registerRoutes(app: Express): Server {
   // Auth middleware
-  await setupAuth(app);
-
-  // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      res.json(user);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
-    }
-  });
+  setupAuth(app);
 
   // Portfolio stats
   app.get('/api/portfolio/stats', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const stats = await storage.getPortfolioStats(userId);
       res.json(stats);
     } catch (error) {
@@ -39,7 +27,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Domain operations
   app.get('/api/domains', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const domains = await storage.getUserDomains(userId);
       res.json(domains);
     } catch (error) {
@@ -50,7 +38,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/domains', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const domainData = insertDomainSchema.parse({
         ...req.body,
         userId,
@@ -79,7 +67,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete('/api/domains/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { id } = req.params;
       
       await storage.deleteDomain(id, userId);
@@ -93,7 +81,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // CSV import
   app.post('/api/domains/import', isAuthenticated, upload.single('csv'), async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       
       if (!req.file) {
         return res.status(400).json({ message: "No CSV file provided" });
